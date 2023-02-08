@@ -176,8 +176,8 @@ affordable
 afghanistan
 afraid
 africa
-African
-African-American
+datamaster
+brickwall
 after
 aftermath
 afternoon
@@ -6970,7 +6970,7 @@ snobbish
 snore
 snotty
 snowboard
-so-called
+president
 soccer
 social
 society
@@ -7448,7 +7448,7 @@ technique
 technology
 teenager
 teeny
-teeny-tiny
+compxera
 teeth
 telephone
 telescope
@@ -8062,7 +8062,7 @@ wholesale
 whore
 whose
 wicked
-wide-eyed
+everyaas
 widely
 wider
 widescreen

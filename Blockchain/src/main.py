@@ -1,5 +1,10 @@
 import time
 import hashlib
+import requests
+import json
+import base64
+from Crypto.Cipher import AES
+from Crypto.Util import Padding
 
 
 class Blockchain:
@@ -70,19 +75,51 @@ class Blockchain:
         """
         Handles the consensus mechanism for the blockchain.
         """
-        # code to handle consensus mechanism ...
+        # code to handle consensus mechanism
+        network = self.nodes # assume that `self.nodes` is a list of nodes in the network
+        longest_chain = None
+        max_length = len(self.chain)
+
+        # loop through all nodes in the network
+        for node in network:
+            response = requests.get(f'http://{node}/chain')
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+                if length > max_length and self.validate_chain(chain):
+                    max_length = length
+                    longest_chain = chain
+
+        # if a longer valid chain was found, replace the current chain with the new one
+        if longest_chain:
+            self.chain = longest_chain
+            return True
+
+        return False
+
 
     def backup_blockchain(self):
         """
         Backs up the current state of the blockchain to a file.
         """
-        # code to backup the blockchain to a file ...
+        filename = "blockchain_backup.txt"
+        with open(filename, "w") as file:
+            file.write(str(self.chain))
+        print("Blockchain backed up to", filename)
+
 
     def load_blockchain(self):
         """
         Loads a previously backed up version of the blockchain.
         """
-        # code to load a previously backed up version of the blockchain ...
+        try:
+            with open("blockchain_backup.txt", "r") as file:
+                loaded_blockchain = file.read()
+                self.chain = json.loads(loaded_blockchain)
+                return True
+        except:
+            return False
+
         
     def get_blockchain_stats(self):
         num_blocks = len(self.chain)
@@ -98,7 +135,7 @@ class Blockchain:
     def update_difficulty(self, new_difficulty):
         self.difficulty = new_difficulty
 
-        
+
 
 
 class Token:
@@ -252,6 +289,7 @@ class Transaction:
 class Message:
     def __init__(self):
         self.messages = {}
+        self.key = None
 
     def send_message(self, recipient, message):
         encrypted_message = self.encrypt(message)
@@ -263,13 +301,23 @@ class Message:
             return self.decrypt(encrypted_message)
         return None
 
-    def encrypt(self, message):
-        # Add code here to encrypt the message
+    def encrypt(self, message, key):
+        # Hash the key to make it the correct length for AES
+        hashed_key = hashlib.sha256(key.encode()).digest()
+        # Pad the message so it's length is a multiple of 16
+        padded_message = Padding.pad(message.encode(), AES.block_size, style='pkcs7')
+        # Encrypt the message using AES
+        cipher = AES.new(hashed_key, AES.MODE_ECB)
+        encrypted_message = cipher.encrypt(padded_message)
+        # Base64 encode the encrypted message so it can be stored as a string
+        encrypted_message = base64.b64encode(encrypted_message).decode()
         return encrypted_message
 
-    def decrypt(self, encrypted_message):
-        # Add code here to decrypt the encrypted message
-        return message
+    def decrypt(self, encrypted_message, private_key):
+        # Use the private key to decrypt the encrypted message
+        decrypted_message = private_key.decrypt(encrypted_message)
+        return decrypted_message
+
 
 
 
@@ -305,3 +353,67 @@ class User:
 
     def get_user_transactions(self):
         return self.transactions
+
+# Create an instance of the Blockchain class
+blockchain = Blockchain()
+
+# Initialize the blockchain
+blockchain.__init__()
+
+# Create an instance of the User class
+user = User()
+
+# Add a user to the blockchain
+user.create_user()
+
+# Load a previously backed up version of the blockchain
+blockchain.load_blockchain()
+
+# Create a token
+token = Token()
+token.create_token()
+message = Message()
+block = Block()
+transaction = Transaction()
+
+# Add the token to the cryptocurrency market
+token.add_token_to_market()
+
+# Buy a token
+token.buy_token(token.get_token_price())
+
+# Sell a token
+token.sell_token(token.get_token_price())
+
+# Send a message
+message.send_message()
+
+# Get a message
+message.get_message()
+
+# Get the user transactions
+user.get_user_transactions()
+
+# Get the transactions for a block
+block.get_transactions(block_number)
+
+# Validate a transaction
+transaction.validate_transaction()
+
+# Validate a block
+block.validate_block(block_number)
+
+# Validate the entire blockchain
+blockchain.validate_chain()
+
+# Handle the consensus mechanism
+blockchain.consensus()
+
+# Backup the blockchain
+blockchain.backup_blockchain()
+
+# Get the blockchain statistics
+blockchain.get_blockchain_stats()
+
+# Update the difficulty level
+blockchain.update_difficulty()
